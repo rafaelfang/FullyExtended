@@ -14,10 +14,11 @@ public:
 	Parser();
 
 	virtual ~Parser();
-	virtual void storeFullyExtendedPDBFiles(string,string, string, string)=0;
-	virtual void storeCoordinates(string, string, string)=0;
-	virtual void parseFile(string)=0;
+
+
+	virtual void loadAlignmentsInfo(string,string,string)=0;
 	virtual void storeRecords(string)=0;
+	virtual void storeFullyExtendedPDB(string)=0;
 	string& getRootName();
 	void setRootName(string& rootName);
 
