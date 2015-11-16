@@ -15,6 +15,16 @@ BlastParser::BlastParser(string _rootName) {
 	// TODO Auto-generated ructor stub
 	setRootName(_rootName);
 }
+
+void BlastParser::storeFullyExtendedPDB(string resultPosition) {
+	string whichMethod("blast");
+	for (int i = 0; i < blastRecords.size(); i++) {
+		Point* p =
+				blastRecords[i].fetchFullyExtendedSubjectAlignedPart3DPointsForQuery(
+						resultPosition, whichMethod, i);
+
+	}
+}
 void BlastParser::storeRecords(string resultPosition) {
 	ofstream myfile;
 	string outputFile(resultPosition);
@@ -25,12 +35,22 @@ void BlastParser::storeRecords(string resultPosition) {
 	myfile << "{\"" << rootName << "\":[" << endl;
 	for (int i = 0; i < blastRecords.size(); i++) {
 		myfile << "\t{" << endl;
-		myfile << "\t\"hitName\":\"" << blastRecords[i].getTemplateName()
+		myfile << "\t\"targetName\":\"" << blastRecords[i].getTargetName()
 				<< "\"," << endl;
+		myfile << "\t\"targetFullSequence\":\""
+				<< blastRecords[i].getTargetSequence() << "\"," << endl;
+		myfile << "\t\"targetLength\":\"" << blastRecords[i].getTargetLength()
+				<< "\"," << endl;
+		myfile << "\t\"templateName\":\"" << blastRecords[i].getTemplateName()
+				<< "\"," << endl;
+		myfile << "\t\"templateSequenceInfo\":\""
+				<< blastRecords[i].getTemplateSequenceInfo() << "\"," << endl;
+		myfile << "\t\"templateSequenceLength\":\""
+				<< blastRecords[i].getTemplateSequenceLength() << "\"," << endl;
 		myfile << "\t\"score\":\"" << blastRecords[i].getScore() << "\","
 				<< endl;
-		myfile << "\t\"expect\":\"" << blastRecords[i].getExpectedValue()
-				<< "\"," << endl;
+		myfile << "\t\"expect\":\"" << blastRecords[i].getExpect() << "\","
+				<< endl;
 		myfile << "\t\"identities\":\"" << blastRecords[i].getIdentities()
 				<< "%\"," << endl;
 		myfile << "\t\"positives\":\"" << blastRecords[i].getPositives()
@@ -51,7 +71,14 @@ void BlastParser::storeRecords(string resultPosition) {
 				<< "\"," << endl;
 		;
 		myfile << "\t\"subjectEnd\":\"" << blastRecords[i].getSubjectEnd()
-				<< "\"}";
+				<< "\"," << endl;
+
+		myfile << "\t\"fullyEntendedStart\":\""
+				<< blastRecords[i].fetchFullyExtendedStart() << "\"," << endl;
+		myfile << "\t\"fullyEntendedEnd\":\""
+				<< blastRecords[i].fetchFullyExtendedEnd() << "\"," << endl;
+		myfile << "\t\"FullyExtendedPart\":\""
+				<< blastRecords[i].fetchFullyExtendedSequence() << "\"}";
 		if (i == blastRecords.size() - 1) {
 			myfile << endl;
 		} else {
@@ -62,49 +89,45 @@ void BlastParser::storeRecords(string resultPosition) {
 	myfile.close();
 }
 
-void BlastParser::storeFullyExtendedPDBFiles(string targetName,string queryLocation,string proteinDatabaseLocation,string experimentLocation) {
-	string whichMethod("blast");
-	for (int i = 0; i < blastRecords.size(); i++) {
-		//cout<<blastRecords[i].getTemplateName()<<endl;
-		blastRecords[i].setTargetName(targetName);
-		blastRecords[i].loadQueryInfo(queryLocation);
-		blastRecords[i].loadTemplateInfo(proteinDatabaseLocation);
-		blastRecords[i].fullyExtended(experimentLocation, whichMethod);
-	}
-}
+void BlastParser::loadAlignmentsInfo(string targetLocation,
+		string blastResultFileLocation, string proteinDatabaseLocation) {
+	//************************************************************************
+	//target information
+	int _targetSequenceLength;
+	string _targetSequence;
+	string _targetName(rootName);
 
-void BlastParser::storeCoordinates(string experimentLocation,
-		string proteinDatabaseLocation, string queryLocation) {
-	ofstream myfile;
-	string outputFile(experimentLocation);
-	outputFile += rootName;
-	outputFile += "_coords_blast.txt";
-	myfile.open((char*) outputFile.c_str());
+	string fastaFile(targetLocation);
+	fastaFile += rootName;
+	fastaFile += ".fasta";
+	FILE* f = fopen((char*) fastaFile.c_str(), "r");
+	if (f == NULL) {
+		cout << "fasta file: " << fastaFile << " can't open" << endl;
+	} else {
 
-	for (int i = 0; i < blastRecords.size(); i++) {
+		int lineLength = 5000;
+		char line[lineLength];
+		fgets(line, lineLength, f);
+		fgets(line, lineLength, f);
+		string s(line);
+		_targetSequence = s.erase(s.find_last_not_of(" \n\r\t") + 1);
 
-		int queryStart = blastRecords[i].getQueryStart();
-		int queryEnd = blastRecords[i].getQueryEnd();
-		blastRecords[i].loadQueryInfo(queryLocation);
-		blastRecords[i].loadTemplateInfo(proteinDatabaseLocation);
-		int queryPointsArrSize = queryEnd - queryStart + 1;
-		Point *queryPoints = (Point*) malloc(
-				sizeof(Point) * queryPointsArrSize);
-		queryPoints = blastRecords[i].fetchSubjectAlignedPart3DPointsForQuery();
-		myfile << "Hit" << i << endl;
-		for (int j = 0; j < queryPointsArrSize; j++) {
-			myfile << "\t" << queryPoints[j].getX() << ","
-					<< queryPoints[j].getY() << "," << queryPoints[j].getZ()
-					<< endl;
+		int numberOfChars = 0;
+		while (line[numberOfChars] != '\0') {
+
+			numberOfChars++;
 		}
-		free(queryPoints);
+		numberOfChars--;
+		_targetSequenceLength = numberOfChars;
 	}
-	myfile.close();
-}
-void BlastParser::parseFile(string blastResultFileLocation) {
+	fclose(f);
+
+	//************************************************************************
+	//Alignments information
 	string blastResultFile(blastResultFileLocation);
 	blastResultFile += rootName;
-	blastResultFile += "/query.blaPDB";
+	blastResultFile += "/QueryInfo/query.blaPDB";
+	cout << blastResultFile << endl;
 	FILE* fptr = fopen((char*) blastResultFile.c_str(), "r");
 	if (fptr == NULL) {
 		cout << "input file: " << blastResultFile << " can't open" << endl;
@@ -149,7 +172,12 @@ void BlastParser::parseFile(string blastResultFileLocation) {
 				string nameLine(line);
 				string hitName = nameLine.substr(1, 6);
 				//cout << "hitName is " << hitName << endl;
+				blastRecord.setTargetName(_targetName);
+				blastRecord.setTargetLength(_targetSequenceLength);
+				blastRecord.setTargetSequence(_targetSequence);
 				blastRecord.setTemplateName(hitName);
+				//**********load template information here*****************
+				blastRecord.loadTemplateInfo(proteinDatabaseLocation);
 
 			} else if (currentState == 'B') {
 
@@ -162,7 +190,7 @@ void BlastParser::parseFile(string blastResultFileLocation) {
 				sscanf(pch2 + 1, "%lf", &expect);
 
 				blastRecord.setScore(score);
-				blastRecord.setExpectedValue(expect);
+				blastRecord.setExpect(expect);
 				/*cout << "score: " << score << endl;
 				 cout << "expect: " << expect << endl;*/
 				fgets(line, lineLength, fptr); //fetch identities line

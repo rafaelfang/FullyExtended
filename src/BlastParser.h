@@ -18,15 +18,15 @@
 
 #include "BlastAlignment.h"
 #include "Parser.h"
+using namespace std;
 class BlastParser: public Parser {
 public:
 	BlastParser();
 	BlastParser(string);
 	virtual ~BlastParser();
-	void parseFile(string);
+	void loadAlignmentsInfo(string,string,string);
 
-	void storeCoordinates(string, string,string);
-	void storeFullyExtendedPDBFiles(string,string,string,string);
+	void storeFullyExtendedPDB(string);
 	void storeRecords(string);
 
 private:
