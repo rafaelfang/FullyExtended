@@ -1,7 +1,7 @@
 /*
  * HHSearchAlignment.h
  *
- *  Created on: Oct 24, 2015
+ *  Created on: Nov 14, 2015
  *      Author: Chao
  */
 
@@ -18,10 +18,19 @@ public:
 	void setAlignedColumns(int alignedColumns);
 	double getProbab();
 	void setProbab(double probab);
+	double getExpect();
+	void setExpect(double expect);
+	int getIdentities();
+	void setIdentities(int identities);
+	double getScore();
+	void setScore(double score);
 
 private:
 	double probab;
+	double expect;
+	double score;
 	int alignedColumns;
+	int identities;
 };
 
 #endif /* HHSEARCHALIGNMENT_H_ */
