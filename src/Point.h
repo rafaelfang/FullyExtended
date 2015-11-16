@@ -8,10 +8,13 @@
 #ifndef POINT_H_
 #define POINT_H_
 
+#include <string>
+
+using namespace std;
 class Point {
 public:
 	Point();
-	Point(double,double,double);
+	Point(double, double, double);
 	virtual ~Point();
 	double getX();
 	void setX(double x);
@@ -20,8 +23,10 @@ public:
 	double getZ();
 	void setZ(double z);
 
+
 private:
 	double x, y, z;
+
 };
 
 #endif /* POINT_H_ */

@@ -11,7 +11,7 @@ Point::Point() {
 	// TODO Auto-generated ructor stub
 
 }
-Point::Point(double _x,double _y,double _z) {
+Point::Point(double _x, double _y, double _z) {
 	// TODO Auto-generated ructor stub
 	setX(_x);
 	setY(_y);
@@ -44,3 +44,5 @@ double Point::getZ() {
 void Point::setZ(double z) {
 	this->z = z;
 }
+
+
