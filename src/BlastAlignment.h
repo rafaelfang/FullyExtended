@@ -18,8 +18,17 @@ public:
 	void setGaps(int gaps);
 	int getPositives();
 	void setPositives(int positives);
+	double getExpect();
+	void setExpect(double expect);
+	double getIdentities();
+	void setIdentities(double identities);
+	double getScore();
+	void setScore(double score);
 
 private:
+	double score;
+	double expect;
+	double identities;
 	int positives;
 	int gaps;
 };

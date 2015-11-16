@@ -31,3 +31,27 @@ int BlastAlignment::getPositives() {
 void BlastAlignment::setPositives(int positives) {
 	this->positives = positives;
 }
+
+double BlastAlignment::getExpect() {
+	return expect;
+}
+
+void BlastAlignment::setExpect(double expect) {
+	this->expect = expect;
+}
+
+double BlastAlignment::getIdentities() {
+	return identities;
+}
+
+void BlastAlignment::setIdentities(double identities) {
+	this->identities = identities;
+}
+
+double BlastAlignment::getScore() {
+	return score;
+}
+
+void BlastAlignment::setScore(double score) {
+	this->score = score;
+}
