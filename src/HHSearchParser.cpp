@@ -1,7 +1,7 @@
 /*
  * HHSearchParser.cpp
  *
- *  Created on: Oct 24, 2015
+ *  Created on: Nov 14, 2015
  *      Author: Chao
  */
 
@@ -15,13 +15,13 @@ HHSearchParser::HHSearchParser(string _rootName) {
 	// TODO Auto-generated constructor stub
 	setRootName(_rootName);
 }
-void HHSearchParser::storeFullyExtendedPDBFiles(string targetName,string queryLocation,string proteinDatabaseLocation,string experimentLocation){
+void HHSearchParser::storeFullyExtendedPDB(string resultPosition) {
 	string whichMethod("hhsearch");
 	for (int i = 0; i < hhsearchRecords.size(); i++) {
-		hhsearchRecords[i].setTargetName(targetName);
-		hhsearchRecords[i].loadQueryInfo(queryLocation);
-		hhsearchRecords[i].loadTemplateInfo(proteinDatabaseLocation);
-		hhsearchRecords[i].fullyExtended(experimentLocation,whichMethod);
+		Point*P =
+				hhsearchRecords[i].fetchFullyExtendedSubjectAlignedPart3DPointsForQuery(
+						resultPosition, whichMethod, i);
+
 	}
 }
 void HHSearchParser::storeRecords(string resultPosition) {
@@ -34,12 +34,25 @@ void HHSearchParser::storeRecords(string resultPosition) {
 	myfile << "{\"" << rootName << "\":[" << endl;
 	for (int i = 0; i < hhsearchRecords.size(); i++) {
 		myfile << "\t{" << endl;
-		myfile << "\t\"hitName\":\"" << hhsearchRecords[i].getTemplateName()
+		myfile << "\t\"targetName\":\"" << hhsearchRecords[i].getTargetName()
 				<< "\"," << endl;
+		myfile << "\t\"targetFullSequence\":\""
+				<< hhsearchRecords[i].getTargetSequence() << "\"," << endl;
+		myfile << "\t\"targetLength\":\""
+				<< hhsearchRecords[i].getTargetLength() << "\"," << endl;
+		myfile << "\t\"templateName\":\""
+				<< hhsearchRecords[i].getTemplateName() << "\"," << endl;
+		myfile << "\t\"templateSequenceInfo\":\""
+				<< hhsearchRecords[i].getTemplateSequenceInfo() << "\","
+				<< endl;
+		myfile << "\t\"templateSequenceLength\":\""
+				<< hhsearchRecords[i].getTemplateSequenceLength() << "\","
+				<< endl;
+
 		myfile << "\t\"probab\":\"" << hhsearchRecords[i].getProbab() << "\","
 				<< endl;
-		myfile << "\t\"expect\":\"" << hhsearchRecords[i].getExpectedValue()
-				<< "\"," << endl;
+		myfile << "\t\"expect\":\"" << hhsearchRecords[i].getExpect() << "\","
+				<< endl;
 		myfile << "\t\"score\":\"" << hhsearchRecords[i].getScore() << "\","
 				<< endl;
 		myfile << "\t\"Aligned Columns\":\""
@@ -60,7 +73,14 @@ void HHSearchParser::storeRecords(string resultPosition) {
 				<< "\"," << endl;
 		;
 		myfile << "\t\"subjectEnd\":\"" << hhsearchRecords[i].getSubjectEnd()
-				<< "\"}";
+				<< "\"," << endl;
+		myfile << "\t\"fullyEntendedStart\":\""
+				<< hhsearchRecords[i].fetchFullyExtendedStart() << "\","
+				<< endl;
+		myfile << "\t\"fullyEntendedEnd\":\""
+				<< hhsearchRecords[i].fetchFullyExtendedEnd() << "\"," << endl;
+		myfile << "\t\"FullyExtendedPart\":\""
+				<< hhsearchRecords[i].fetchFullyExtendedSequence() << "\"}";
 		if (i == hhsearchRecords.size() - 1) {
 			myfile << endl;
 		} else {
@@ -71,39 +91,45 @@ void HHSearchParser::storeRecords(string resultPosition) {
 	myfile.close();
 }
 
-void HHSearchParser::storeCoordinates(string experimentLocation,
-		string proteinDatabaseLocation,string queryLocation) {
-	ofstream myfile;
-	string outputFile(experimentLocation);
-	outputFile += rootName;
-	outputFile += "_coords_hhsearch.txt";
-	myfile.open((char*) outputFile.c_str());
+void HHSearchParser::loadAlignmentsInfo(string targetLocation,
+		string hhsearchResultFileLocation, string proteinDatabaseLocation) {
+	//************************************************************************
+	//target information
+	int _targetSequenceLength;
+	string _targetSequence;
+	string _targetName(rootName);
 
-	for (int i = 0; i < hhsearchRecords.size(); i++) {
+	string fastaFile(targetLocation);
+	fastaFile += rootName;
+	fastaFile += ".fasta";
+	FILE* f = fopen((char*) fastaFile.c_str(), "r");
+	if (f == NULL) {
+		cout << "fasta file: " << fastaFile << " can't open" << endl;
+	} else {
 
-		int queryStart = hhsearchRecords[i].getQueryStart();
-		int queryEnd = hhsearchRecords[i].getQueryEnd();
-		hhsearchRecords[i].loadQueryInfo(queryLocation);
-		hhsearchRecords[i].loadTemplateInfo(proteinDatabaseLocation);
-		int queryPointsArrSize = queryEnd - queryStart + 1;
-		Point *queryPoints = (Point*) malloc(
-				sizeof(Point) * queryPointsArrSize);
-		queryPoints = hhsearchRecords[i].fetchSubjectAlignedPart3DPointsForQuery();
-		myfile << "Hit" << i << endl;
-		for (int j = 0; j < queryPointsArrSize; j++) {
-			myfile << "\t" << queryPoints[j].getX() << ","
-					<< queryPoints[j].getY() << "," << queryPoints[j].getZ()
-					<< endl;
+		int lineLength = 5000;
+		char line[lineLength];
+		fgets(line, lineLength, f);
+		fgets(line, lineLength, f);
+		string s(line);
+		_targetSequence = s.erase(s.find_last_not_of(" \n\r\t") + 1);
+
+		int numberOfChars = 0;
+		while (line[numberOfChars] != '\0') {
+
+			numberOfChars++;
 		}
-		free(queryPoints);
+		numberOfChars--;
+		_targetSequenceLength = numberOfChars;
 	}
-	myfile.close();
-}
+	fclose(f);
+	//************************************************************************
+	//Alignments information
 
-void HHSearchParser::parseFile(string hhsearchResultFileLocation) {
 	string hhsearchResultFile(hhsearchResultFileLocation);
 	hhsearchResultFile += rootName;
-	hhsearchResultFile += "/query.hhr";
+	hhsearchResultFile += "/QueryInfo/query.hhr";
+	cout << hhsearchResultFile << endl;
 	FILE* fptr = fopen((char*) hhsearchResultFile.c_str(), "r");
 	if (fptr == NULL) {
 		cout << "input file: " << hhsearchResultFile << " can't open" << endl;
@@ -146,7 +172,12 @@ void HHSearchParser::parseFile(string hhsearchResultFileLocation) {
 				string nameLine(line);
 				string hitName = nameLine.substr(1, 6);
 				//cout << "hitName is " << hitName << endl;
+				hhsearchRecord.setTargetName(_targetName);
+				hhsearchRecord.setTargetLength(_targetSequenceLength);
+				hhsearchRecord.setTargetSequence(_targetSequence);
 				hhsearchRecord.setTemplateName(hitName);
+				//**********load template information here*****************
+				hhsearchRecord.loadTemplateInfo(proteinDatabaseLocation);
 
 			} else if (currentState == 'B') {
 
@@ -171,37 +202,39 @@ void HHSearchParser::parseFile(string hhsearchResultFileLocation) {
 				sscanf(pch5 + 1, "%d", &identities);
 
 				hhsearchRecord.setProbab(probab);
-				hhsearchRecord.setExpectedValue(expect);
+				hhsearchRecord.setExpect(expect);
 				hhsearchRecord.setScore(score);
 				hhsearchRecord.setAlignedColumns(alignedColumns);
 				hhsearchRecord.setIdentities(identities);
-				/*
-				 cout << "probab: " << probab << endl;
-				 cout << "expect: " << expect << endl;
-				 cout << "score: " << score << endl;
-				 cout << "aligned columns: " << alignedColumns << endl;
-				 cout << "identities: " << identities << endl;
-				 */
-
+/*
+				cout << "probab: " << probab << endl;
+				cout << "expect: " << expect << endl;
+				cout << "score: " << score << endl;
+				cout << "aligned columns: " << alignedColumns << endl;
+				cout << "identities: " << identities << endl;
+*/
 			} else if (currentState == 'C') {
-
-				char info[14], queryPart[200];
+				//current locate at Q ss_pred
+				fgets(line, lineLength, fptr);	//skip Q ss_conf
+				fgets(line, lineLength, fptr);	//get Q pdb info
+				char queryPart[200];
 				int queryStart, queryEnd;
 
-				sscanf(line, "%*s %s %d %s %d", info, &queryStart, queryPart,
+				sscanf(line, "%*s %*s %d %s %d", &queryStart, queryPart,
 						&queryEnd);
+				//cout << line << endl;
 				string _queryPart(queryPart);
-
+				//cout << "=====" << queryStart << queryPart << queryEnd << endl;
 				fgets(line, lineLength, fptr); //skip q consensus
 				fgets(line, lineLength, fptr); //skip alignment
 				fgets(line, lineLength, fptr); //skip T Consensus
 				fgets(line, lineLength, fptr); //get T info
 
-				char info1[6], subjectPart[200];
+				char subjectPart[200];
 				int subjectStart, subjectEnd;
 
-				sscanf(line, "%*s %s %d %s %d", info1, &subjectStart,
-						subjectPart, &subjectEnd);
+				sscanf(line, "%*s %*s %d %s %d", &subjectStart, subjectPart,
+						&subjectEnd);
 
 				string _subjectPart(subjectPart);
 
@@ -216,15 +249,16 @@ void HHSearchParser::parseFile(string hhsearchResultFileLocation) {
 				 cout << "query info: " << queryStart << queryPart << queryEnd
 				 << endl;
 				 cout << "subject info: " << subjectStart << subjectPart
-				 << subjectEnd << endl;
-				 */
+				 << subjectEnd << endl;*/
 
 			} else if (currentState == 'D') {
-
-				char info[14], queryPart[200];
+				//current locate at Q ss_pred
+				fgets(line, lineLength, fptr); //skip Q ss_conf
+				fgets(line, lineLength, fptr); //get Q pdb info
+				char queryPart[200];
 				int queryStart, queryEnd;
 
-				sscanf(line, "%*s %s %d %s %d", info, &queryStart, queryPart,
+				sscanf(line, "%*s %*s %d %s %d", &queryStart, queryPart,
 						&queryEnd);
 				string _queryPart(queryPart);
 				fgets(line, lineLength, fptr); //skip q consensus
@@ -232,11 +266,11 @@ void HHSearchParser::parseFile(string hhsearchResultFileLocation) {
 				fgets(line, lineLength, fptr); //skip T Consensus
 				fgets(line, lineLength, fptr); //get T info
 
-				char info1[6], subjectPart[200];
+				char subjectPart[200];
 				int subjectStart, subjectEnd;
 
-				sscanf(line, "%*s %s %d %s %d", info1, &subjectStart,
-						subjectPart, &subjectEnd);
+				sscanf(line, "%*s %*s %d %s %d", &subjectStart, subjectPart,
+						&subjectEnd);
 				string _subjectPart(subjectPart);
 
 				string oldQueryPart = hhsearchRecord.getQueryPart();
@@ -268,4 +302,3 @@ void HHSearchParser::parseFile(string hhsearchResultFileLocation) {
 HHSearchParser::~HHSearchParser() {
 // TODO Auto-generated destructor stub
 }
-

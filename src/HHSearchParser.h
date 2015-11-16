@@ -1,7 +1,7 @@
 /*
  * HHSearchParser.h
  *
- *  Created on: Oct 24, 2015
+ *  Created on: Nov 14, 2015
  *      Author: Chao
  */
 
@@ -24,13 +24,11 @@ public:
 	HHSearchParser(string);
 	virtual ~HHSearchParser();
 
-	void parseFile(string);
-	void storeFullyExtendedPDBFiles(string,string ,string,string);
-	void storeCoordinates(string, string,string);
+	void loadAlignmentsInfo(string, string, string);
 
+	void storeFullyExtendedPDB(string);
 	void storeRecords(string);
 private:
 	vector<HHSearchAlignment> hhsearchRecords;
 };
-
 #endif /* HHSEARCHPARSER_H_ */
