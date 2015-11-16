@@ -8,12 +8,12 @@
 #ifndef TEMPLATE_H_
 #define TEMPLATE_H_
 
-#include "Query.h"
+#include "Target.h"
 
-class Template: public Query {
+class Template: public Target {
 public:
 	Template();
-	Template(Query);
+	Template(Target);
 	virtual ~Template();
 	string& getMethodUsed();
 	void setMethodUsed(string& methodUsed);
@@ -21,12 +21,11 @@ public:
 	void setTemplateCAlphaCoords(Point* templateCAlphaCoords);
 	string& getTemplateName();
 	void setTemplateName(string& templateName);
-	int loadTemplateInfo(string);
 	string& getTemplateSequenceInfo();
 	void setTemplateSequenceInfo(string& templateSequenceInfo);
 	int getTemplateSequenceLength();
 	void setTemplateSequenceLength(int templateSequenceLength);
-
+	int loadTemplateInfo(string);
 protected:
 	string templateName;
 	string templateSequenceInfo;

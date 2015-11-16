@@ -11,16 +11,19 @@ Template::Template() {
 	// TODO Auto-generated ructor stub
 
 }
-Template::Template(Query _query) {
+Template::Template(Target t) {
 	// TODO Auto-generated ructor stub
-	setTargetName(_query.getTargetName());
-	setQuery(_query.getQuery());
-	setQueryLength(_query.getQueryLength());
+	setTargetName(t.getTargetName());
+	setTargetSequence(t.getTargetSequence());
+	setTargetLength(t.getTargetLength());
 }
 
-int Template::loadTemplateInfo(string proteinLocation) {
+Template::~Template() {
+	// TODO Auto-generated destructor stub
+}
+int Template::loadTemplateInfo(string proteinDatabaseLocation) {
 	//open protein db file, read and store protein infomation
-	string proteinFile(proteinLocation);
+	string proteinFile(proteinDatabaseLocation);
 	proteinFile += templateName;
 	proteinFile += ".db";
 	//cout<<templateName<<endl;
@@ -32,7 +35,7 @@ int Template::loadTemplateInfo(string proteinLocation) {
 		int lineLength = 5000;
 		char line[lineLength];
 		while (fgets(line, lineLength, fptr) != NULL) {
-			if ((strstr(line, ">Real Sequence Info:") != NULL)) {
+			if ((strstr(line, ">Reference Sequence Info:") != NULL)) {
 
 				fgets(line, lineLength, fptr);
 
@@ -44,8 +47,10 @@ int Template::loadTemplateInfo(string proteinLocation) {
 				numberOfChars--;
 
 				string _realSequenceInfo(line);
-
+				_realSequenceInfo = _realSequenceInfo.erase(
+						_realSequenceInfo.find_last_not_of(" \n\r\t") + 1);
 				setTemplateSequenceInfo(_realSequenceInfo);
+
 				//cout << templateSequenceInfo << endl;
 				setTemplateSequenceLength(numberOfChars);
 				//cout << templateSequenceLength << endl;
@@ -71,7 +76,7 @@ int Template::loadTemplateInfo(string proteinLocation) {
 					fscanf(fptr, "%lf", &temp);
 					Ys[i] = temp;
 					//if (i % 10 == 0) {
-						//cout << endl;
+					//cout << endl;
 					//}
 					//cout << Ys[i] << " ";
 				}
@@ -100,10 +105,6 @@ int Template::loadTemplateInfo(string proteinLocation) {
 	return 0;
 
 }
-Template::~Template() {
-	// TODO Auto-generated destructor stub
-}
-
 string& Template::getMethodUsed() {
 	return methodUsed;
 }
