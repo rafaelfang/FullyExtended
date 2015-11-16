@@ -8,19 +8,18 @@
 #ifndef ALIGNMENT_H_
 #define ALIGNMENT_H_
 
-#include "Template.h"
+#include <string>
 #include <sys/stat.h>
+#include "Template.h"
+
+using namespace std;
 class Alignment: public Template {
 public:
 	Alignment();
 	Alignment(Template);
-	void fullyExtended(string experimentLocation,string whichMethod);
-	Point* fetchSubjectAlignedPart3DPointsForQuery();
-	string changeName(char name);
 
 	virtual ~Alignment();
-	double getExpectedValue();
-	void setExpectedValue(double expectedValue);
+
 	int getQueryEnd();
 	void setQueryEnd(int queryEnd);
 	string& getQueryPart();
@@ -33,23 +32,23 @@ public:
 	void setSubjectPart(string& subjectPart);
 	int getSubjectStart();
 	void setSubjectStart(int subjectStart);
-
-	int getIdentities();
-	void setIdentities(int identities);
-
-	double getScore();
-	void setScore(double score);
+	Point* fetchSubjectAlignedPart3DPointsForQuery();
+	string fetchFullyExtendedSequence();
+	Point* fetchFullyExtendedSubjectAlignedPart3DPointsForQuery(string, string,
+			int);
+	string shortName2LongName(char name);
+	int fetchFullyExtendedStart();
+	int fetchFullyExtendedEnd();
 
 private:
 	int queryStart;
 	string queryPart;
 	int queryEnd;
+
 	int subjectStart;
 	string subjectPart;
 	int subjectEnd;
-	double expectedValue;
-	double score;
-	int identities;
+
 
 
 };
